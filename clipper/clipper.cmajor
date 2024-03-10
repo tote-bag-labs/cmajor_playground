@@ -1,0 +1,111 @@
+
+graph clipper  [[main]]
+{
+    input stream float<2> in;
+    output stream float<2> out;
+
+    input inputGain.volume inGain [[name: "Input Gain", min: -24,   max: 24, init: 0, unit: "dB" ]];
+    input event float thresh [[ name: "ClippingPoint", min: -60,   max: 0, init: 0, unit: "dB" ]];
+    input outputGain.volume outGain [[name: "Output Gain", min: -24,   max: 24, init: 0, unit: "dB" ]];
+
+    node inputGain = std::levels::SmoothedGain (float<2>);
+    node outputGain = std::levels::SmoothedGain (float<2>);
+
+    node split = SplitMono(float);
+    node merge = MergeStereo(float);
+
+    node clipperLeft = Clipper;
+    node clipperRight = Clipper;
+
+    connection
+    {
+        // parameters
+        thresh -> clipperLeft.clippingThreshold;
+        thresh -> clipperRight.clippingThreshold;
+
+        // io
+        in -> inputGain.in;
+        
+        inputGain.out -> split.in;
+
+        split.outLeft -> clipperLeft.in;
+        split.outRight -> clipperRight.in;
+
+        clipperLeft -> merge.inLeft;
+        clipperRight -> merge.inRight;
+
+        merge -> outputGain.in;
+        
+        outputGain.out -> out;
+    }
+}
+
+
+processor Clipper
+{
+    input stream float in;
+    output stream float out;
+
+    input event float clippingThreshold [[ name: "ClippingPoint", min: -60,   max: 0, init: 0, unit: "dB" ]]; 
+
+    event clippingThreshold (float v) 
+    { 
+        threshold = std::levels::dBtoGain(v);
+    }   
+
+    float threshold = 1.0;
+
+    void main()
+    {
+        loop
+        { 
+            if (in < -threshold)
+            {
+                out <- -threshold;
+            } 
+            else if (in > threshold)
+            {
+                out <- threshold;
+            }
+            else
+            {
+                out <- in;
+            }
+
+            advance();
+        }
+    }
+}
+
+
+processor SplitMono (using SampleType)
+{
+    input stream SampleType<2> in;
+    output stream SampleType outLeft;
+    output stream SampleType outRight;
+
+    void main()
+    {
+        loop
+        {
+            outLeft <- in[0];
+            outRight <- in[1];
+            advance();
+        }
+    }
+}
+
+
+processor MergeStereo (using SampleType) {
+    input stream SampleType inLeft;
+    input stream SampleType inRight;
+    output stream SampleType<2> out;
+
+    void main() {
+        loop {
+            out <- SampleType<2>(inLeft, inRight);
+            advance();
+        }
+    }
+}
+
