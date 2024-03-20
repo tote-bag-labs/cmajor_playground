@@ -1,0 +1,73 @@
+
+
+So we want to do a downsampling effect. Make it a zero order hold. So ever nth sample, we switch the sample we are using
+
+
+
+
+// state
+float currentSample = 0.0f;
+
+// downsampleFactor = 2;
+
+zoh(inputBuffer, outputBuffer)
+{
+    for(int i = 0; i < bufferSize; ++i)
+    {
+        if(i % downsampleFactor == 0)
+        {
+            currentSample = inputBuffer[i];
+        }
+
+        outputBuffer[i] = inputBuffer[i];
+    }
+
+}
+
+
+this above works for any downsampleFactor that is an integer. But what about an arbitrary factor?
+
+
+
+
+https://www.kvraudio.com/forum/viewtopic.php?t=583897&sid=93adb4e8a9814ca2d80bcec316eab99e
+
+void initialize() { phase=0.0; }
+
+void process_one_sample()
+{ rate = required_rate / sample_rate;
+  phase += rate;
+  if (phase>=1.0)
+  {  phase-=1.0;
+     out = in;  // Sample input
+  }
+  else out = last_out;  // Hold output.
+}
+
+
+If I understand correctly, the lofi effects you're asking about have deliberate aliasing. Their challenge is to create aliasing as if the input were sampled at a lower sample-rate, with a deliberately poor-quality downsample and/or upsample (for playback).
+
+You don't actually need to resample to that rate to make that sound. If you consider the continuous-time view, "sampling" a continuous signal can be viewed multiplying it by an impulse train (of Dirac deltas), such that it's only non-zero at the sample times.
+
+sampling-spectrum.png
+
+If you don't lowpass the signal properly beforehand (meaning these copies will overlap), and/or you don't lowpass properly when upsampling again, then you get aliasing.
+
+So to produce an accurate lofi aliasing effect, I'd first oversample the input by a constant factor so there's a bunch of blank spectrum. We can then multiply with a suitable band-limited impulse train (which is easy to generate and change the rate on over time). This will produce spectral copies at the appropriate intervals, giving the aliasing sound. (You can put suitably bad lowpasses on the input and the product to simulate a half-hearted downsample/upsample if you like).
+
+With an appropriate the oversampling rate and the impulse-train bandwidth correctly, the result will fit inside the oversampled bandwidth:
+
+lofi-bandwidths.png
+
+Then downsample again and you're done. It should be possible to do that with just 3x oversampling (and an impulse train limited to 2x the original Nyquist), but I guess in practice you might use 4x for simplicity.
+
+
+
+
+http://www.music.mcgill.ca/~gary/307/week5/node14.html
+
+
+
+P = sr / freq;
+M = 2 * floor( P * .5 ) + 1;
+BLIT(x) = (M/P) * sin(pi*x*M) / M sin( pi*x );

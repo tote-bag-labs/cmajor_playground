@@ -1,0 +1,11 @@
+    float tickSTK(float x)
+    {
+        let denominator = sin(phase);
+
+        if(denominator <= .001)
+        {
+            return 1.0;
+        }
+
+        return sin(M * phase) / (M * denominator);
+    }

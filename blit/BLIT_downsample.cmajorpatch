@@ -1,0 +1,14 @@
+
+{
+    "CmajorVersion":    1,
+    "ID":               "com.your_name.your_patch_ID",
+    "version":          "1.0",
+    "name":             "BLIT_downsample",
+    "description":      "BLIT_downsample",
+    "category":         "fx",
+    "manufacturer":     "Your Company Goes Here",
+    "isInstrument":     true,
+
+    "source":           ["BLIT_downsample.cmajor",
+                         "vafilters.cmajor"]
+}
