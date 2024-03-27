@@ -7,14 +7,14 @@
 
 graph BLIT_playground [[ main ]]
 {
-   input stream float in;
-   output stream float out;
+   input stream float<2> in;
+   output stream float<2> out;
 
     input outputGain.volume outGain [[name: "Output Gain", min: -120.0,   max: 0.0, init: -120.0, unit: "dB" ]];
     input blit.frequency [[name: "Frequency" ]];
 
-    node blit = downsampleBlit * 4;
-    node outputGain = std::levels::SmoothedGain (float);
+    node blit = downsampleBlit(float32<2>) * 4;
+    node outputGain = std::levels::SmoothedGain (float32<2>);
  
    connection
    {
@@ -24,10 +24,10 @@ graph BLIT_playground [[ main ]]
    }
 }
 
-processor downsampleBlit
+processor downsampleBlit (using FrameType = float32)
 {
-    input stream float in;
-    output stream float out;
+    input stream FrameType in;
+    output stream FrameType out;
 
     input event float frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: 44100.0f ]];
 
@@ -36,7 +36,7 @@ processor downsampleBlit
         blit.frequency <- f;
     }
 
-    node blit = BLIT;
+    node blit = BLIT(float32);
 
     void main()
     {
@@ -50,10 +50,10 @@ processor downsampleBlit
     }
 }
 
-processor BLIT  
+processor BLIT  (using FrameType = float32)
 {
-    input stream float in;
-    output stream float out;
+    input stream FrameType in;
+    output stream FrameType out;
     input event float frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: initFrequency ]];
 
     event frequency (float f)
@@ -108,6 +108,5 @@ processor BLIT
     float M_P = 0.0;
     float phase = 0.0;
     float rate = 0.0;
-
 }
 
