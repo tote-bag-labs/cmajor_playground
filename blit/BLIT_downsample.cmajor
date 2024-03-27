@@ -5,7 +5,7 @@
 */
 
 
-graph BLIT_playground [[ main ]]
+graph Blit_Downsampler [[ main ]]
 {
    input stream float<2> in;
    output stream float<2> out;
@@ -23,6 +23,26 @@ graph BLIT_playground [[ main ]]
         outputGain.out -> out;
    }
 }
+
+// graph Blit_Oscillator [[ main ]]
+// {
+//    input stream float in;
+//    output stream float out;
+
+//     input outputGain.volume outGain [[name: "Output Gain", min: -120.0,   max: 0.0, init: -120.0, unit: "dB" ]];
+//     input blit.frequency [[name: "Frequency" ]];
+
+//     node blit = BLIT(float32);
+
+//     node outputGain = std::levels::SmoothedGain (float32);
+ 
+//    connection
+//    {
+//         in -> blit.in;
+//         blit.out -> outputGain.in;
+//         outputGain.out -> out;
+//    }
+// }
 
 processor downsampleBlit (using FrameType = float32)
 {
@@ -50,25 +70,26 @@ processor downsampleBlit (using FrameType = float32)
     }
 }
 
-processor BLIT  (using FrameType = float32)
+processor BLIT  (using FrameType = float32,
+                 using CoefficientType = float32)
 {
     input stream FrameType in;
     output stream FrameType out;
-    input event float frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: initFrequency ]];
+    input event CoefficientType frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: initFrequency ]];
 
-    event frequency (float f)
+    event frequency (CoefficientType f)
     {
         setup(f);
     }
 
     let initFrequency = 44100.0f;
 
-    void setup(float f)
+    void setup(CoefficientType f)
     {
-        let P = float32(processor.frequency) / f;
+        let P = CoefficientType(processor.frequency) / f;
         M = 2 * int32(floor(P / 2)) + 1;
-        M_P = float(M)/P;
-        rate = float32(pi) / P;
+        M_P = CoefficientType(M)/P;
+        rate = CoefficientType(pi) / P;
     }
 
     float tick(float x)
@@ -96,7 +117,7 @@ processor BLIT  (using FrameType = float32)
             phase += rate;
             if (phase >= pi)
             {
-                phase -= float32(pi);
+                phase -= CoefficientType(pi);
             }
 
 
@@ -105,8 +126,8 @@ processor BLIT  (using FrameType = float32)
     }
 
     int M = 0;
-    float M_P = 0.0;
-    float phase = 0.0;
-    float rate = 0.0;
+    CoefficientType M_P = 0.0;
+    CoefficientType phase = 0.0;
+    CoefficientType rate = 0.0;
 }
 
