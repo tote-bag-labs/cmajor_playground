@@ -54,12 +54,14 @@ processor BLIT
 {
     input stream float in;
     output stream float out;
-    input event float frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: 44100.0f ]];
+    input event float frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: initFrequency ]];
 
     event frequency (float f)
     {
         setup(f);
     }
+
+    let initFrequency = 44100.0f;
 
     void setup(float f)
     {
@@ -85,7 +87,7 @@ processor BLIT
 
     void main()
     {
-        setup(44100.0_f32);
+        setup(initFrequency);
 
         loop
         {
