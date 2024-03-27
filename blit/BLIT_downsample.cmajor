@@ -98,7 +98,7 @@ processor BLIT  (using FrameType = float32,
 
         let denominator = M * sin((M_P_phase) / M);
 
-        if (denominator <= .001) // use epsilon ?
+        if (denominator <= 1e-7)
         {
             return M_P;
         }
