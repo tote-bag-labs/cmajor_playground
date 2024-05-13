@@ -1,0 +1,43 @@
+// 2024 Tote Bag Labs
+
+/* Channel Utils
+   These two processors do what they say, splitting
+   a stereo stream into two mono streams or merging
+   two mono streams into one stereo stream.
+
+   Useful for creating connections between stereo
+   and dual mono processors.
+*/
+
+processor SplitMono (using SampleType)
+{
+    input stream SampleType<2> in;
+    output stream SampleType outLeft;
+    output stream SampleType outRight;
+
+    void main()
+    {
+        loop
+        {
+            outLeft <- in[0];
+            outRight <- in[1];
+            advance();
+        }
+    }
+}
+
+
+processor MergeStereo (using SampleType) {
+    input stream SampleType inLeft;
+    input stream SampleType inRight;
+    output stream SampleType<2> out;
+
+    void main() {
+        loop {
+            out <- SampleType<2>(inLeft, inRight);
+            advance();
+        }
+    }
+}
+
+//==================================================

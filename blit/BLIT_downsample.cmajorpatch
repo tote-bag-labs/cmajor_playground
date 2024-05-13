@@ -10,5 +10,6 @@
     "isInstrument":     true,
 
     "source":           ["BLIT_downsample.cmajor",
-                         "vafilters.cmajor"]
+                         "vafilters.cmajor",
+                         "../common/utils.cmajor"]
 }
