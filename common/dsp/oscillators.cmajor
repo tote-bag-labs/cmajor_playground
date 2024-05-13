@@ -1,0 +1,79 @@
+// Tote Bag Labs 2024
+
+/** Band Limited Impulse Train
+
+   A impulse train implemented as to prevent aliasing. It does this
+   by limiting its harmonics to nyquist. More here:
+
+   https://ccrma.stanford.edu/~stilti/papers/blit.pdf
+
+   See https://github.com/thestk/stk/blob/master/src/Blit.cpp for an
+   alternate implementation. In that implementation, the output is
+   normalised, which might be useful in some other applications
+   (probably synthesis).
+*/
+processor blitOscillator  (using FrameType = float32,
+                            using CoefficientType = float32)
+{
+    input stream FrameType in;
+    output stream FrameType out;
+    input event CoefficientType frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: initFrequency]];
+
+    event frequency (CoefficientType f)
+    {
+        setup(f);
+    }
+
+    let initFrequency = 44100.0f;
+
+    void setup(CoefficientType f)
+    {
+        let P = CoefficientType(processor.frequency) / f;
+        M = 2 * int32(floor(P / 2)) + 1;
+        M_P = CoefficientType(M)/P;
+        rate = CoefficientType(pi) / P;
+
+        initialised = true;
+    }
+
+    float tick(float x)
+    {
+        let M_P_phase = M_P * phase;
+
+        let denominator = M * sin((M_P_phase) / M);
+
+        if (denominator <= 1e-7)
+        {
+            return M_P;
+        }
+
+        return M_P * (sin(M_P_phase) / denominator);
+    }
+
+    bool initialised = false;
+    int M = 0;
+    CoefficientType M_P = 0.0;
+    CoefficientType phase = 0.0;
+    CoefficientType rate = 0.0;
+
+    void main()
+    {
+        if(!initialised)
+        {
+            setup(initFrequency);
+        }
+
+        loop
+        {
+            out <- tick(phase);
+
+            phase += rate;
+            if (phase >= pi)
+            {
+                phase -= CoefficientType(pi);
+            }
+
+           advance();
+        }
+    }
+}
