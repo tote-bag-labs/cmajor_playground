@@ -4,7 +4,16 @@
     https://cmajor.dev
 */
 
+/** A "lo fi" downsampling effect.
 
+    Currently offers a Zero Order Hold with input and output filtering.
+
+    TODO: Decide whether this should operate at a fixed internal sampling rate.
+    This is because the aliasing created changes a lot when the ratio between
+    host and effect sample rate divide to an irrational number. Changing the host
+    sample rate, then, may change the sound of the effect, which we don't really
+    want.
+*/
 graph BlitDownsampler() [[ main ]]
 {
    input stream float<2> in;
