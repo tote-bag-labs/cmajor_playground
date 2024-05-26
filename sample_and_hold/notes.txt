@@ -1,0 +1,29 @@
+
+
+
+
+
+tick(input)
+{
+    increment = downsampleRate / hostSampleRate;
+    phase += increment;
+
+    if (phase >= 1.0)
+    {
+        sampledInput = input;
+        phase -= 1.0;
+    }
+
+    return sampledInput;
+}
+
+{.5, .7, .4, -1.0, .5, -.4 }
+
+host sample rate = 48.2 kHz
+down sample rate = 44.1 kHz
+
+increment = .5
+//let's assume phase started at 1 :)
+{.5, .5, .4, .4, .5, .5}
+
+{.5, 0, .4, 0, .5, 0}
