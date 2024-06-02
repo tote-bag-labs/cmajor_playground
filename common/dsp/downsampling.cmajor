@@ -1,0 +1,74 @@
+// Tote Bag Labs 2024
+
+/** A zero order hold downsampling effect.
+
+    It works by multiplying input with a Band Limited Impulse Train (BLIT).
+    This allows us to simulate analog to digital conversion at whatever frequency we want.
+
+    From personal communication with Geraint Luft (Signalsmith):
+
+    A good way to think about sampling is that you're multiplying the input signal
+    by a series of pulses, with zeroes in between them. This gives you can output which
+    only "exists" at specific points in time, and produces duplicate spectra in the
+    frequency domain (multiplication in time = convolution in frequency).
+
+    The effect we are looking for involves creating duplicate spectra for low sample
+    sample rates: the digital dirt we love in vintage samplers. However, this operation
+    also causes aliasing close to the host sample rate. We don't want this, so this processor
+    should be run with at least 2x oversampling.
+
+    Notes about this implementation.
+
+    Input filtering is baked in, as will output filtering with a virtual analog filter.
+    My instinct tells me that it would be better to leave these out and rather implement
+    them at the graph level, but limitations of the language prevent me from doing that
+    for now: namely, the lack of conditional connection paths at runtime. I want to be
+    able to turn filtering off. Putting the filters in here makes that possible.
+
+    I haven't done that with the output filters yet—the way they are implemented prevents
+    this for now.
+*/
+processor downsampleBlit (using FrameType = float32)
+{
+    input stream FrameType in;
+    output stream FrameType out;
+
+    input event float frequency [[ name: "Frequency", min: 100.0f, max: 44100.0f, init: 44100.0f]];
+
+    event frequency(float f)
+    {
+        smoothedFrequency.setTarget(f, smoothingFrames);
+    }
+
+    node blit = blitOscillator(float32);
+    var inputFilter = std::filters(float32<2>)::simper::create (0, processor.frequency, 44100.0f, 1.0f, 1.0f);
+
+    let smoothingSeconds = 10.0f * .001f;
+    int smoothingFrames = 0;
+    std::smoothing(float32)::SmoothedValue smoothedFrequency;
+
+    void main()
+    {
+        smoothingFrames = int32(processor.frequency * smoothingSeconds);
+
+        loop
+        {
+            let currentFrequency = smoothedFrequency.currentValue();
+            let nextFrequency = smoothedFrequency.getNext();
+            if (nextFrequency != currentFrequency)
+            {
+                blit.frequency <- nextFrequency;
+
+                // we want to filter at new nyquist - ish before downsample to prevent some aliasing
+                //https://github.com/mwcm/pitcher/blob/master/pitcher/core.py
+                let nyquist = nextFrequency / 2.0f;
+                inputFilter.setFrequency(processor.frequency, nyquist * .66f, 2.0f, 1.0f);
+            }
+
+           out <- inputFilter.process(in) * blit.out;
+
+           blit.advance();
+           advance();
+        }
+    }
+}
