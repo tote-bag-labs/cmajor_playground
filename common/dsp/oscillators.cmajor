@@ -50,6 +50,18 @@ processor blitOscillator  (using FrameType = float32,
         return M_P * (sin(M_P_phase) / denominator);
     }
 
+    float tickSTK(float x)
+    {
+        let denominator = sin(phase);
+
+        if(denominator <= .001)
+        {
+            return 1.0;
+        }
+
+        return sin(M * phase) / (M * denominator);
+    }
+
     bool initialised = false;
     int M = 0;
     CoefficientType M_P = 0.0;
@@ -65,7 +77,7 @@ processor blitOscillator  (using FrameType = float32,
 
         loop
         {
-            out <- tick(phase);
+            out <- tickSTK(phase);
 
             phase += rate;
             if (phase >= pi)
