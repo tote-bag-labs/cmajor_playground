@@ -31,7 +31,8 @@ processor blitOscillator  (using FrameType = float32,
         let P = CoefficientType(processor.frequency) / f;
         M = 2 * int32(floor(P / 2)) + 1;
         M_P = CoefficientType(M)/P;
-        rate = f / CoefficientType(processor.frequency);
+        rate = 2.0f * CoefficientType(pi) * f / CoefficientType(processor.frequency);
+        // rate = CoefficientType(pi) / P;
 
         initialised = true;
     }
@@ -40,7 +41,7 @@ processor blitOscillator  (using FrameType = float32,
     {
         let denominator = M * sin(CoefficientType(pi) * x / M);
 
-        if (denominator <= .0001)
+        if (abs(denominator) <= .0001)
         {
             return 1.0;
         }
@@ -80,13 +81,25 @@ processor blitOscillator  (using FrameType = float32,
 
         loop
         {
-            out <- tick(phase);
+            let current = tick(phase);
+            let next = tick(phase - 2.0f * CoefficientType(pi));
+            let r = phase / (2.0f * CoefficientType(pi));
+            let coeff = r * r * (3.0f - 2.0f * r);
+
+            out <- next * coeff + current * (CoefficientType(1.0) - coeff);
+
+            // out <- tickSTK(phase);
 
             phase += rate;
             if (phase >= 2 * pi)
             {
                 phase -= CoefficientType(2 * pi);
             }
+
+            // if (phase >= pi)
+            // {
+            //     phase -= CoefficientType(pi);
+            // }
 
            advance();
         }
