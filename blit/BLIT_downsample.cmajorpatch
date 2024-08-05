@@ -13,5 +13,5 @@
                          "vafilters.cmajor",
                          "../common/utils.cmajor",
                          "../common/dsp/downsampling.cmajor",
-                         "../common/dsp/oscillators.cmajor"]
+                         "../common/dsp/blit.cmajor"]
 }

@@ -1,0 +1,146 @@
+// Tote Bag Labs 2024
+
+/** A BLIT implementation as shown in "Alias-Free Digital Synthesis 
+    of Classic Analog Waveforms" (https://ccrma.stanford.edu/~stilti/papers/blit.pdf).
+
+    Sounds, to my ear, exactly the same as the STK implementation.
+*/
+processor blitOscillator  (using FrameType = float32,
+                            using CoefficientType = float32)
+{
+    input stream FrameType in;
+    output stream FrameType out;
+    input event CoefficientType frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: initFrequency]];
+
+    event frequency (CoefficientType f)
+    {
+        setup(f);
+    }
+
+    let initFrequency = 44100.0f;
+
+    void setup(CoefficientType f)
+    {
+        let P = CoefficientType(processor.frequency) / f;
+        M = 2 * int32(floor(P / 2.0)) + 1;
+        M_P = CoefficientType(M)/P;
+        rate = CoefficientType(f / processor.frequency);
+
+        
+        initialised = true;
+    }
+
+    float sinc(float x)
+    {
+        let denominator = M * sin(CoefficientType(pi) * x / M);
+
+        if (abs(denominator) <= .00000001)
+        {
+            return 1.0;
+        }
+
+        return sin(CoefficientType(pi) * x) / denominator;
+    }
+
+    float tick(float x)
+    {
+        return M_P * sinc(M * x);
+    }
+
+    bool initialised = false;
+    int M = 0;
+    CoefficientType M_P = 0.0;
+    CoefficientType phase = 0.0;
+    CoefficientType rate = 0.0;
+
+    void main()
+    {
+        if(!initialised)
+        {
+            setup(initFrequency);
+        }
+
+        loop
+        {
+            out <- tick(CoefficientType(phase));
+
+            phase += rate;
+            if (CoefficientType(phase) >= 1.0)
+            {
+                phase -= CoefficientType(1.0);
+            }
+
+           advance();
+        }
+    }
+}
+
+
+/** A BLIT implementation taken from the Synthesis Tool Kit
+
+    See https://github.com/thestk/stk/blob/master/src/Blit.cpp for an
+    alternate implementation. In that implementation, the output is
+    normalised, which might be useful in some other applications
+    (probably synthesis).
+*/
+processor stkBlitOscillator  (using FrameType = float32,
+                              using CoefficientType = float32)
+{
+    input stream FrameType in;
+    output stream FrameType out;
+    input event CoefficientType frequency [[ name: "Frequency", min: 5.0f, max: 44100.0f, init: initFrequency]];
+
+    event frequency (CoefficientType f)
+    {
+        setup(f);
+    }
+
+    let initFrequency = 44100.0f;
+
+    void setup(CoefficientType f)
+    {
+        let P = CoefficientType(processor.frequency) / f;
+        M = 2 * int32(floor(P / 2)) + 1;
+        rate = CoefficientType(pi) / P;
+
+        initialised = true;
+    }
+
+    float tickSTK(float x)
+    {
+        let denominator = sin(x);
+
+        if(denominator <= .00000001)
+        {
+            return 1.0;
+        }
+
+        return sin(M * x) / (M * denominator);
+    }
+
+    bool initialised = false;
+    int M = 0;
+    CoefficientType phase = 0.0;
+    CoefficientType rate = 0.0;
+
+    void main()
+    {
+        if(!initialised)
+        {
+            setup(initFrequency);
+        }
+
+        loop
+        {
+            out <- tickSTK(phase);
+
+            phase += rate;
+            if (phase >= pi)
+            {
+                phase -= CoefficientType(pi);
+            }
+
+           advance();
+        }
+    }
+}

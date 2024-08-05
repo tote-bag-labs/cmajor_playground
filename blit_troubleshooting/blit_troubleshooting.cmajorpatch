@@ -10,5 +10,5 @@
     "isInstrument":     true,
 
     "source":           ["blit_troubleshooting.cmajor",
-                        "../common/dsp/oscillators.cmajor"]
+                        "../common/dsp/blit.cmajor"]
 }
