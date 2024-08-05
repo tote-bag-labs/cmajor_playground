@@ -16,17 +16,6 @@
     sample rates: the digital dirt we love in vintage samplers. However, this operation
     also causes aliasing close to the host sample rate. We don't want this, so this processor
     should be run with at least 2x oversampling.
-
-    Notes about this implementation.
-
-    Input filtering is baked in, as will output filtering with a virtual analog filter.
-    My instinct tells me that it would be better to leave these out and rather implement
-    them at the graph level, but limitations of the language prevent me from doing that
-    for now: namely, the lack of conditional connection paths at runtime. I want to be
-    able to turn filtering off. Putting the filters in here makes that possible.
-
-    I haven't done that with the output filters yet—the way they are implemented prevents
-    this for now.
 */
 processor downsampleBlit (using FrameType = float32)
 {
@@ -37,35 +26,16 @@ processor downsampleBlit (using FrameType = float32)
 
     event frequency(float f)
     {
-        smoothedFrequency.setTarget(f, smoothingFrames);
+        blit.frequency <- f;
     }
 
     node blit = stkBlitOscillator(float32);
-    var inputFilter = std::filters(float32<2>)::simper::create (0, processor.frequency, 44100.0f, 1.0f, 1.0f);
-
-    let smoothingSeconds = 10.0f * .001f;
-    int smoothingFrames = 0;
-    std::smoothing(float32)::SmoothedValue smoothedFrequency;
-
+   
     void main()
     {
-        smoothingFrames = int32(processor.frequency * smoothingSeconds);
-
         loop
         {
-            let currentFrequency = smoothedFrequency.currentValue();
-            let nextFrequency = smoothedFrequency.getNext();
-            if (nextFrequency != currentFrequency)
-            {
-                blit.frequency <- nextFrequency;
-
-                // we want to filter at new nyquist - ish before downsample to prevent some aliasing
-                //https://github.com/mwcm/pitcher/blob/master/pitcher/core.py
-                let nyquist = nextFrequency / 2.0f;
-                inputFilter.setFrequency(processor.frequency, nyquist * .66f, 2.0f, 1.0f);
-            }
-
-           out <- inputFilter.process(in) * blit.out;
+           out <- in * blit.out;
 
            blit.advance();
            advance();
