@@ -40,7 +40,7 @@ processor downsampleBlit (using FrameType = float32)
         smoothedFrequency.setTarget(f, smoothingFrames);
     }
 
-    node blit = blitOscillator(float32);
+    node blit = stkBlitOscillator(float32);
     var inputFilter = std::filters(float32<2>)::simper::create (0, processor.frequency, 44100.0f, 1.0f, 1.0f);
 
     let smoothingSeconds = 10.0f * .001f;
