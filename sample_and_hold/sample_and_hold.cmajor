@@ -35,8 +35,11 @@ processor sample_and_hold  [[ main ]]
             //     out <- in;
             //     phase -= 1.0f;
             // }
+            // else
+            // {
+            //    out <- 0.0f;
+            // }
             
-            out <- 0.0f;
 
             advance();
         }
