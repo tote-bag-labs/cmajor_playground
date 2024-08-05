@@ -10,8 +10,8 @@
     "isInstrument":     true,
 
     "source":           ["BLIT_downsample.cmajor",
-                         "vafilters.cmajor",
-                         "../common/utils.cmajor",
-                         "../common/dsp/downsampling.cmajor",
-                         "../common/dsp/blit.cmajor"]
+                         "../../common/dsp/vafilters.cmajor",
+                         "../../common/utils.cmajor",
+                         "../../common/dsp/downsampling.cmajor",
+                         "../../common/dsp/blit.cmajor"]
 }

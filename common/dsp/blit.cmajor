@@ -78,10 +78,7 @@ processor blitOscillator  (using FrameType = float32,
 
 /** A BLIT implementation taken from the Synthesis Tool Kit
 
-    See https://github.com/thestk/stk/blob/master/src/Blit.cpp for an
-    alternate implementation. In that implementation, the output is
-    normalised, which might be useful in some other applications
-    (probably synthesis).
+    See https://github.com/thestk/stk/blob/master/src/Blit.cpp.
 */
 processor stkBlitOscillator  (using FrameType = float32,
                               using CoefficientType = float32)
