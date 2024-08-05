@@ -1,0 +1,14 @@
+
+{
+    "CmajorVersion":    1,
+    "ID":               "com.your_name.your_patch_ID",
+    "version":          "1.0",
+    "name":             "blit_troubleshooting",
+    "description":      "blit_troubleshooting",
+    "category":         "generator",
+    "manufacturer":     "Your Company Goes Here",
+    "isInstrument":     true,
+
+    "source":           ["blit_troubleshooting.cmajor",
+                        "../common/dsp/oscillators.cmajor"]
+}
