@@ -54,6 +54,7 @@ graph BlitDownsampler() [[ main ]]
     // to allow this.
     let nyquist = fs / 2.0f;
 
+    inputFilter.frequency <- nyquist * .66f;
     outputFilterLeft.frequencyIn <- nyquist;
     outputFilterRight.frequencyIn <- nyquist;
    }
@@ -74,7 +75,8 @@ graph BlitDownsampler() [[ main ]]
  
    connection
    {
-        in -> blit.in;
+        in -> inputFilter.in;
+        inputFilter.out -> blit.in;
         blit.out -> toMono.in;
         toMono.outLeft -> outputFilterLeft.in;
         toMono.outRight -> outputFilterRight.in;
